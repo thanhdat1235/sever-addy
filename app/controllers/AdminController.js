@@ -311,21 +311,68 @@ class AdminController {
   }
   // Search
   async search(req, res) {
-    const payload = req.body.payload.replace(/[[`_|+\=?<>\{\}\[\]\\\/]/gi, "");
-    const search = await User.find({
-      $or: [
-        { first_name: { $regex: `${payload}`, $options: "i" } },
-        { last_name: { $regex: `${payload}`, $options: "i" } },
-        { address: { $regex: `${payload}`, $options: "i" } },
-        { email: { $regex: `${payload}`, $options: "i" } },
-      ],
-    });
-    if (payload) {
-      res.status(200).json({ payload: search });
-    } else {
-      const result = await User.find({}, { password: 0 });
-      res.status(200).json({ payload: result });
-    }
+    const pageSize = parseInt(req.body.payload.pageSize);
+    const page = parseInt(req.body.payload.page);
+    const skip = (page - 1) * pageSize;
+    const dataSearch = req.body.payload.data?.replace(
+      /[[`_|+\=?<>\{\}\[\]\\\/]/gi,
+      ""
+    );
+
+    User.countDocuments(
+      {
+        $or: [
+          { first_name: { $regex: `${dataSearch}`, $options: "i" } },
+          { last_name: { $regex: `${dataSearch}`, $options: "i" } },
+          { email: { $regex: `${dataSearch}`, $options: "i" } },
+        ],
+      },
+      async function (err, count) {
+        if (err) {
+          console.log(err);
+        } else {
+          if (dataSearch) {
+            const totalElements = count;
+            const totalPages = Math.ceil(totalElements / pageSize);
+            const search = await User.find({
+              $or: [
+                { first_name: { $regex: `${dataSearch}`, $options: "i" } },
+                { last_name: { $regex: `${dataSearch}`, $options: "i" } },
+                { email: { $regex: `${dataSearch}`, $options: "i" } },
+              ],
+            })
+              .skip(skip)
+              .limit(pageSize);
+            const numberOfElements = search.length;
+            res.status(200).json({
+              payload: {
+                search,
+                totalElements,
+                totalPages,
+                numberOfElements,
+                pageAble: { page, pageSize },
+              },
+            });
+          } else {
+            const totalElements = count;
+            const totalPages = Math.ceil(totalElements / pageSize);
+            const search = await User.find({}, { password: 0 })
+              .skip(skip)
+              .limit(pageSize);
+            const numberOfElements = search.length;
+            res.status(200).json({
+              payload: {
+                search,
+                totalElements,
+                totalPages,
+                numberOfElements,
+                pageAble: { page, pageSize },
+              },
+            });
+          }
+        }
+      }
+    );
   }
 }
 
