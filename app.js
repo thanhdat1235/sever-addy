@@ -3,8 +3,16 @@ require("./config/database").connect();
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
+const multiparty = require("connect-multiparty");
+const fileUpload = require("express-fileupload");
 
 const app = express();
+
+app.use(
+  fileUpload({
+    createParentPath: true,
+  })
+);
 
 const corsOptions = {
   origin: "*",
@@ -24,6 +32,8 @@ app.use(
     parameterLimit: 100000000,
   })
 );
+
+app.use(express.static("files-upload"));
 
 app.use("/images", express.static("images"));
 
