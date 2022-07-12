@@ -21,6 +21,13 @@ router.put("/update/:id", auth, authManagerRole, postController.updatePost);
 
 router.post("/create", auth, authManagerRole, postController.createPost);
 
+router.post(
+  "/find-by-category-id/:id",
+  auth,
+  authManagerRole,
+  postController.findByCompanyId
+);
+
 router.get("/", postController.getAll);
 
 module.exports = router;

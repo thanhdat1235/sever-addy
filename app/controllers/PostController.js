@@ -1,4 +1,5 @@
-const Post = require("../../model/post");
+const Post = require("../../model/posts");
+const Category = require("../../model/category");
 const SubscribeNewPost = require("../../model/subcribenewpost");
 const statusAPI = require("../../utils/statusAPI");
 const decodedBase64 = require("../../utils/write");
@@ -6,51 +7,97 @@ const { sendEmail } = require("../../utils/sendMail");
 
 class PostController {
   async createPost(req, res) {
-    const { category, title, description, linkPost } = req.body;
-    if (!category || !title || !description) {
+    const { idCategory, title, tags, ckeditor, urlImage, description } =
+      req.body;
+    if (
+      !idCategory ||
+      !title ||
+      !tags ||
+      !ckeditor ||
+      !urlImage ||
+      !description
+    ) {
       return res.status(400).send("All input is required");
     }
-    const filename = title.trim().replace(/\s/g, "");
-    const encoded = decodedBase64(req.body.ckeditor, `${filename}.png`);
-    const ckeditor = encoded.linkImage;
-    const urlImage = encoded.link;
     try {
       const post = await Post.create({
-        category,
-
+        category: idCategory,
         title,
-        created_at: new Date(),
+        tags,
         ckeditor,
         urlImage,
         description,
+        created_at: new Date(),
       });
-      if (!post) {
-        return res
-          .status(statusAPI.BAD_REQUEST.code)
-          .send({ message: "Create post failed" });
-      }
-      const allCustomers = SubscribeNewPost.find();
-      if (!allCustomers) {
-        return res.status(404).send({ message: "Bad request" });
-      }
-      const htmlContent = `Day la bai viet moi nhat cua AddyPrin. Hay truy cap vao ${linkPost}${post._id.toString()} de xem chi tiet</p>`;
-      res.status(statusAPI.CREATED.code).send({ linkImage: encoded });
-      Promise.all([allCustomers]).then((customers) => {
-        if (customers.length > 0) {
-          customers[0].forEach(async (customer) => {
-            try {
-              const email = customer.email;
-              await sendEmail(email, subject, htmlContent);
-              console.log("Thanh cong");
-            } catch (error) {
-              console.log(error);
-            }
+      res.status(201).json(post);
+    } catch (error) {
+      return res.status(500).send("Error server: " + error.message);
+    }
+    // const { category, title, description, linkPost } = req.body;
+    // if (!category || !title || !description) {
+    //   return res.status(400).send("All input is required");
+    // }
+    // const filename = title.trim().replace(/\s/g, "");
+    // const encoded = decodedBase64(req.body.ckeditor, `${filename}.png`);
+    // const ckeditor = encoded.linkImage;
+    // const urlImage = encoded.link;
+    // try {
+    //   const post = await Post.create({
+    //     category,
+
+    //     title,
+    //     created_at: new Date(),
+    //     ckeditor,
+    //     urlImage,
+    //     description,
+    //   });
+    //   if (!post) {
+    //     return res
+    //       .status(statusAPI.BAD_REQUEST.code)
+    //       .send({ message: "Create post failed" });
+    //   }
+    //   const allCustomers = SubscribeNewPost.find();
+    //   if (!allCustomers) {
+    //     return res.status(404).send({ message: "Bad request" });
+    //   }
+    //   const htmlContent = `Day la bai viet moi nhat cua AddyPrin. Hay truy cap vao ${linkPost}${post._id.toString()} de xem chi tiet</p>`;
+    //   res.status(statusAPI.CREATED.code).send({ linkImage: encoded });
+    //   Promise.all([allCustomers]).then((customers) => {
+    //     if (customers.length > 0) {
+    //       customers[0].forEach(async (customer) => {
+    //         try {
+    //           const email = customer.email;
+    //           await sendEmail(email, subject, htmlContent);
+    //           console.log("Thanh cong");
+    //         } catch (error) {
+    //           console.log(error);
+    //         }
+    //       });
+    //     }
+    //   });
+    // } catch (error) {
+    //   console.log(error);
+    // }
+  }
+
+  findByCompanyId(req, res) {
+    Post.find({ company: req.params.companyId }).exec(function (err, posts) {
+      if (err) {
+        if (err.kind === "ObjectId") {
+          return res.status(404).send({
+            message:
+              "posts not found with given Company Id " + req.params.companyId,
           });
         }
-      });
-    } catch (error) {
-      console.log(error);
-    }
+        return res.status(500).send({
+          message:
+            "Error retrieving posts with given Company Id " +
+            req.params.companyId,
+        });
+      }
+
+      res.send(posts);
+    });
   }
 
   async getAll(req, res) {
