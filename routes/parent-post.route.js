@@ -3,14 +3,9 @@ const router = express.Router();
 const auth = require("../middleware/auth");
 const { authAdminRole, authManagerRole } = require("../middleware/authenRoles");
 
-const categoryController = require("../app/controllers/CategoryController");
+const parentPostController = require("../app/controllers/parentPostController");
 
-router.post(
-  "/create",
-  auth,
-  authManagerRole,
-  categoryController.CreateCategory
-);
+router.post("/create", auth, authManagerRole, parentPostController.CreatePost);
 
 // router.get(
 //   "/get-all-categories",

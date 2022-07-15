@@ -1,5 +1,4 @@
-// Model Post
-// const Post = require("./posts");
+const ParentPosts = require("./parentPosts");
 const mongoose = require("mongoose");
 Schema = mongoose.Schema;
 // Model user
@@ -10,7 +9,7 @@ const categorySchema = new mongoose.Schema({
     dropDups: true,
   },
   name: String,
-  posts: [{ type: Schema.Types.ObjectId, ref: "Post" }],
+  parentPosts: [{ type: Schema.Types.ObjectId, ref: "ParentPosts" }],
 });
 categorySchema.index({ "$**": "text" });
 module.exports = mongoose.model("Category", categorySchema);

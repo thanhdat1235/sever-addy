@@ -5,29 +5,30 @@ const { authAdminRole, authManagerRole } = require("../middleware/authenRoles");
 
 const postController = require("../app/controllers/PostController");
 
-router.post("/sendmail", postController.newCustomer);
+// router.post("/sendmail", postController.newCustomer);
 
-router.post("/search-by-category/:category", postController.searchByCategory);
+// router.post("/search-by-category/:category", postController.searchByCategory);
 
-router.delete("/delete/:id", auth, authManagerRole, postController.deleteOne);
+// router.delete("/delete/:id", auth, authManagerRole, postController.deleteOne);
 
-router.post("/search", postController.search);
+// router.post("/search", postController.search);
 
-router.get("/findone/:id", postController.findById);
+// router.get("/findone/:id", postController.findById);
 
-router.delete("/delete", auth, authManagerRole, postController.delete);
+// router.delete("/delete", auth, authManagerRole, postController.delete);
 
-router.put("/update/:id", auth, authManagerRole, postController.updatePost);
+// router.put("/update/:id", auth, authManagerRole, postController.updatePost);
 
 router.post("/create", auth, authManagerRole, postController.createPost);
+router.post("/find-test/:id", postController.findTest);
 
-router.post(
-  "/find-by-category-id/:id",
-  auth,
-  authManagerRole,
-  postController.findByCompanyId
-);
+// router.post(
+//   "/find-by-category-id/:id",
+//   auth,
+//   authManagerRole,
+//   postController.findByCategory
+// );
 
-router.get("/", postController.getAll);
+// router.get("/", postController.getAll);
 
 module.exports = router;
