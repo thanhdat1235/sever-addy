@@ -1,53 +1,105 @@
 const Post = require("../../model/posts");
 const Category = require("../../model/category");
-const ParentPosts = require("../../model/parentPosts");
+const Tags = require("../../model/tags");
 const SubscribeNewPost = require("../../model/subcribenewpost");
 const statusAPI = require("../../utils/statusAPI");
 const decodedBase64 = require("../../utils/write");
 const { sendEmail } = require("../../utils/sendMail");
-const { response } = require("express");
 
 class PostController {
   async createPost(req, res, next) {
     try {
-      const { title, tags, ckeditor, urlImage, description, parentID } =
-        req.body;
+      const {
+        title,
+        ckeditor_data,
+        urlImage,
+        description,
+        categoryId,
+        tagsId,
+        templateId,
+        status,
+      } = req.body;
       if (
-        !title ||
-        // !tags ||
-        !ckeditor ||
-        !urlImage ||
-        !description ||
-        !parentID
-      )
-        return res.status(404).send({ message: "All input is required" });
-      const post = await Post.create({
-        title: title,
-        // tags: tags,
-        ckeditor: ckeditor,
-        urlImage: urlImage,
-        description: description,
-        parentPostS: parentID,
+        ((!title,
+        !ckeditor_data,
+        !urlImage,
+        !description,
+        !categoryId,
+        !templateId,
+        !status),
+        !tagsId)
+      ) {
+        return res.status(404).send({ message: "All input is require" });
+      }
+      const newPost = await Post.create({
+        title,
+        ckeditor_data,
+        urlImage,
+        description,
         created_at: new Date(),
+        categories: categoryId,
+        tags: tagsId,
+        templateId,
+        status,
+        countViews: 0,
+        countComments: 0,
       });
-      if (!post) res.status(500).send({ message: "Error creating post" });
-      const parentByID = await ParentPosts.findByIdAndUpdate(
-        { _id: parentID },
-        { posts: post._id }
+      const saveCategory = await Category.findByIdAndUpdate(
+        { _id: categoryId },
+        { posts: newPost._id },
+        { new: true }
       );
-      res.status(201).json({ post, parentByID });
+      const saveTags = await Tags.findByIdAndUpdate(
+        { _id: tagsId },
+        { posts: newPost._id },
+        { new: true }
+      );
+      res.status(201).json({ newPost, saveCategory, saveTags });
     } catch (error) {
       console.log(error);
-      res.status(500).send({ message: "Error server" });
     }
   }
 
-  async findTest(req, res) {
+  async findByCategory(req, res, next) {
     try {
-      const idPost = req.params.id;
-      Post.aggregate([{ $sort: { created_at: 1 } }]);
-      const dataFinded = await Post.find().populate("parentPostS");
-      res.json(dataFinded);
+      const idCategory = req.params.id;
+      if (!idCategory)
+        return res.status(404).send({ message: "No category id provided." });
+      const dataFinded = await Post.find({ categories: idCategory }).populate(
+        "categories"
+      );
+      res.status(200).json(dataFinded);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  async getAll(req, res, next) {
+    try {
+      const pageSize = parseInt(req.query.pageSize);
+      const page = parseInt(req.query.page);
+      const skip = (page - 1) * pageSize;
+      Post.countDocuments({}, async function (err, count) {
+        if (err) return next(err);
+        const totalElements = count;
+        const totalPages = Math.ceil(totalElements / pageSize);
+        await Post.find()
+          .skip(skip)
+          .limit(pageSize)
+          .then((data) => {
+            const numberOfElements = data.length;
+            res.status(201).json({
+              data,
+              totalElements,
+              totalPages,
+              numberOfElements,
+              pageAble: {
+                page,
+                pageSize,
+              },
+            });
+          });
+      });
     } catch (error) {
       console.log(error);
     }

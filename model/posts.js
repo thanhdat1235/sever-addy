@@ -1,5 +1,4 @@
 // Model Post
-const ParentPosts = require("./parentPosts");
 const mongoose = require("mongoose");
 Schema = mongoose.Schema;
 // Model user
@@ -17,7 +16,10 @@ const postSchema = new mongoose.Schema({
   urlImage: { type: String },
   description: { type: String },
   countComments: { type: Number },
-  parentPostS: { type: Schema.Types.ObjectId, ref: "ParentPosts" },
+  template: { type: String },
+  status: { type: Boolean },
+  categories: { type: Schema.Types.ObjectId, ref: "Category" },
+  tags: { type: Schema.Types.ObjectId, ref: "Tags" },
 });
 postSchema.index({ "$**": "text" });
 module.exports = mongoose.model("Post", postSchema);

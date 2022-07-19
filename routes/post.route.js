@@ -20,15 +20,14 @@ const postController = require("../app/controllers/PostController");
 // router.put("/update/:id", auth, authManagerRole, postController.updatePost);
 
 router.post("/create", auth, authManagerRole, postController.createPost);
-router.post("/find-test/:id", postController.findTest);
 
-// router.post(
-//   "/find-by-category-id/:id",
-//   auth,
-//   authManagerRole,
-//   postController.findByCategory
-// );
+router.post(
+  "/find-by-category-id/:id",
+  auth,
+  authManagerRole,
+  postController.findByCategory
+);
 
-// router.get("/", postController.getAll);
+router.get("/", postController.getAll);
 
 module.exports = router;

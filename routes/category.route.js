@@ -12,11 +12,6 @@ router.post(
   categoryController.CreateCategory
 );
 
-// router.get(
-//   "/get-all-categories",
-//   auth,
-//   authManagerRole,
-//   categoryController.findAll
-// );
+router.get("/get-all-categories", categoryController.findAll);
 
 module.exports = router;
